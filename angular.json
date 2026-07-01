@@ -82,7 +82,7 @@
             "runner": "karma",
             "runnerConfig": true,
             "coverage": true,
-            "coverageExclude": ["src/app/*-toast/**"]
+            "coverageExclude": ["src/app/*-toast.ts"]
           }
         },
         "lint": {

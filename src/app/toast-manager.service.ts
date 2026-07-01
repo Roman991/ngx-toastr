@@ -7,9 +7,9 @@ import {
   type GlobalConfig,
   type IndividualConfig,
 } from 'ngx-toastr';
-import { BootstrapToast } from './bootstrap-toast/bootstrap-toast.component';
-import { NotyfToast } from './notyf-toast/notyf-toast.component';
-import { PinkToast } from './pink-toast/pink-toast.component';
+import { BootstrapToast } from './bootstrap-toast';
+import { NotyfToast } from './notyf-toast';
+import { PinkToast } from './pink-toast';
 import { quotes, type Quote } from './quotes';
 
 @Injectable({ providedIn: 'root' })

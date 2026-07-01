@@ -1,9 +1,9 @@
 import { Signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Toast, ActiveToast, ToastrService, provideToastr } from 'ngx-toastr';
-import { NotyfToast } from './notyf-toast/notyf-toast.component';
-import { PinkToast } from './pink-toast/pink-toast.component';
-import type { BootstrapToast } from './bootstrap-toast/bootstrap-toast.component';
+import { NotyfToast } from './notyf-toast';
+import { PinkToast } from './pink-toast';
+import type { BootstrapToast } from './bootstrap-toast';
 import { ToastManagerService } from './toast-manager.service';
 
 /**

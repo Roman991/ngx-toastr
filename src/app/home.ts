@@ -1,4 +1,4 @@
-import { Component, VERSION, ChangeDetectionStrategy, inject, viewChildren } from '@angular/core';
+import { Component, VERSION, inject, viewChildren } from '@angular/core';
 import { GlobalConfig, ToastrService, ToastContainerDirective } from 'ngx-toastr';
 import { FormsModule } from '@angular/forms';
 import { ToastManagerService } from './toast-manager.service';
@@ -7,7 +7,6 @@ const types = ['success', 'error', 'info', 'warning'];
 
 @Component({
   selector: 'app-home',
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule],
   template: `
     <div class="container mt-3">

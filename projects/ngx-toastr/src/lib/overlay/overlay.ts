@@ -28,6 +28,12 @@ export class Overlay {
    * @returns A reference to the created overlay.
    */
   create(positionClass?: string, overlayContainer?: ToastContainerDirective): OverlayRef {
+    // When using the global container, re-promote it to the top of the browser top
+    // layer so this toast renders above any dialog/overlay opened after the container
+    // was first shown. The user-supplied [toastContainer] directive is left untouched.
+    if (!overlayContainer) {
+      this._overlayContainer.raiseToTop();
+    }
     // get existing pane if possible
     return this._createOverlayRef(this.getPaneElement(positionClass, overlayContainer));
   }

@@ -149,6 +149,13 @@ export interface GlobalConfig<C = unknown> extends IndividualConfig<C> {
    * default: false
    */
   includeTitleDuplicates: boolean;
+  /**
+   * Render toasts on the browser top layer via the Popover API so they appear
+   * above native popover-layer dialogs/overlays (e.g. Angular 21+ CDK Overlay).
+   * Falls back to body-level rendering when the Popover API is unsupported.
+   * default: true
+   */
+  useTopLayer?: boolean;
 }
 
 /**
@@ -198,6 +205,7 @@ export const DefaultNoComponentGlobalConfig: GlobalConfig = {
   countDuplicates: false,
   resetTimeoutOnDuplicate: false,
   includeTitleDuplicates: false,
+  useTopLayer: true,
 
   iconClasses: {
     error: 'toast-error',

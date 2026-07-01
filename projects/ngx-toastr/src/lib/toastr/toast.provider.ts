@@ -1,6 +1,6 @@
 import { DefaultNoComponentGlobalConfig, GlobalConfig, TOAST_CONFIG } from './toastr-config';
 import { EnvironmentProviders, makeEnvironmentProviders, Provider } from '@angular/core';
-import { Toast } from './toast/toast.component';
+import { Toast } from './toast';
 
 export const DefaultGlobalConfig: GlobalConfig = {
   ...DefaultNoComponentGlobalConfig,
@@ -10,6 +10,8 @@ export const DefaultGlobalConfig: GlobalConfig = {
 /**
  * @description
  * Provides the `TOAST_CONFIG` token with the given config.
+ *
+ * Pass `animation: false` to disable the enter/leave animations.
  *
  * @param config The config to configure toastr.
  * @returns The environment providers.
@@ -23,6 +25,7 @@ export const DefaultGlobalConfig: GlobalConfig = {
  *     provideToastr({
  *       timeOut: 2000,
  *       positionClass: 'toast-top-right',
+ *       animation: false, // disable animations
  *     }),
  *   ],
  * })

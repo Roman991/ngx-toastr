@@ -1,4 +1,4 @@
-import { Observable, Subject } from 'rxjs';
+import { signal } from '@angular/core';
 import { OverlayRef } from '../overlay/overlay-ref';
 
 /**
@@ -8,37 +8,33 @@ export class ToastRef<T> {
   /** The instance of component opened into the toast. */
   componentInstance!: T;
 
-  /** Count of duplicates of this toast */
-  private duplicatesCount = 0;
+  /** Signal notifying that the toast has finished closing. */
+  private _closed = signal(false);
+  /** Signal notifying that the toast has been activated. */
+  private _activated = signal(false);
+  /** Counter incremented every time the toast should close before the timeout. */
+  private _manualClose = signal(0);
+  /** Counter incremented every time the toast should reset its timeouts. */
+  private _resetTimeout = signal(0);
+  /** Number of duplicates of this toast. */
+  private _duplicatesCount = signal(0);
 
-  /** Subject for notifying the user that the toast has finished closing. */
-  private _afterClosed = new Subject<void>();
-  /** triggered when toast is activated */
-  private _activate = new Subject<void>();
-  /** notifies the toast that it should close before the timeout */
-  private _manualClose = new Subject<void>();
-  /** notifies the toast that it should reset the timeouts */
-  private _resetTimeout = new Subject<void>();
-  /** notifies the toast that it should count a duplicate toast */
-  private _countDuplicate = new Subject<number>();
+  /** Notified when the toast has finished closing. */
+  readonly closed = this._closed.asReadonly();
+  /** Notified when the toast has started opening. */
+  readonly activated = this._activated.asReadonly();
+  /** Incremented when the toast should close before the timeout. */
+  readonly manualClose = this._manualClose.asReadonly();
+  /** Incremented when the toast should reset its timeouts. */
+  readonly resetTimeout = this._resetTimeout.asReadonly();
+  /** Count of duplicate toasts. */
+  readonly duplicatesCount = this._duplicatesCount.asReadonly();
 
   constructor(private _overlayRef: OverlayRef) {}
 
-  manualClose() {
-    this._manualClose.next();
-    this._manualClose.complete();
-  }
-
-  manualClosed(): Observable<unknown> {
-    return this._manualClose.asObservable();
-  }
-
-  timeoutReset(): Observable<unknown> {
-    return this._resetTimeout.asObservable();
-  }
-
-  countDuplicate(): Observable<number> {
-    return this._countDuplicate.asObservable();
+  /** Request the toast to close before the timeout. */
+  triggerManualClose() {
+    this._manualClose.update(count => count + 1);
   }
 
   /**
@@ -46,41 +42,26 @@ export class ToastRef<T> {
    */
   close(): void {
     this._overlayRef.detach();
-    this._afterClosed.next();
-    this._manualClose.next();
-    this._afterClosed.complete();
-    this._manualClose.complete();
-    this._activate.complete();
-    this._resetTimeout.complete();
-    this._countDuplicate.complete();
-  }
-
-  /** Gets an observable that is notified when the toast is finished closing. */
-  afterClosed(): Observable<void> {
-    return this._afterClosed.asObservable();
+    this._closed.set(true);
+    this._activated.set(true);
+    this._manualClose.update(count => count + 1);
   }
 
   isInactive() {
-    return this._activate.closed;
+    return this._activated();
   }
 
   activate() {
-    this._activate.next();
-    this._activate.complete();
+    this._activated.set(true);
   }
 
-  /** Gets an observable that is notified when the toast has started opening. */
-  afterActivate(): Observable<void> {
-    return this._activate.asObservable();
-  }
-
-  /** Reset the toast timouts and count duplicates */
+  /** Reset the toast timeouts and count duplicates. */
   onDuplicate(resetTimeout: boolean, countDuplicate: boolean) {
     if (resetTimeout) {
-      this._resetTimeout.next();
+      this._resetTimeout.update(count => count + 1);
     }
     if (countDuplicate) {
-      this._countDuplicate.next(++this.duplicatesCount);
+      this._duplicatesCount.update(count => count + 1);
     }
   }
 }

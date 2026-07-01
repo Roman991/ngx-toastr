@@ -1,10 +1,31 @@
+import { Signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { Toast, ActiveToast, ToastrModule, type ToastNoAnimation, ToastrService } from 'ngx-toastr';
+import { Toast, ActiveToast, ToastrService, provideToastr } from 'ngx-toastr';
 import { NotyfToast } from './notyf-toast/notyf-toast.component';
 import { PinkToast } from './pink-toast/pink-toast.component';
-import { firstValueFrom } from 'rxjs';
 import type { BootstrapToast } from './bootstrap-toast/bootstrap-toast.component';
 import { ToastManagerService } from './toast-manager.service';
+
+/**
+ * Resolves once the given signal satisfies the predicate. Flushes Angular's
+ * change detection / effects on each poll so dynamically created toasts advance.
+ */
+function awaitSignal<T>(sig: Signal<T>, predicate: (value: T) => boolean): Promise<void> {
+  return new Promise(resolve => {
+    const check = () => {
+      TestBed.tick();
+      if (predicate(sig())) {
+        resolve();
+        return;
+      }
+      setTimeout(check, 5);
+    };
+    setTimeout(check, 5);
+  });
+}
+
+const whenShown = (toast: ActiveToast<unknown>) => awaitSignal(toast.onShown, shown => shown);
+const whenHidden = (toast: ActiveToast<unknown>) => awaitSignal(toast.onHidden, hidden => hidden);
 
 describe('Toasts', () => {
   let toastManager!: ToastManagerService;
@@ -12,112 +33,96 @@ describe('Toasts', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [
-        ToastrModule.forRoot({
+      providers: [
+        provideToastr({
           timeOut: 800,
           progressBar: true,
-          onActivateTick: true,
           enableHtml: true,
         }),
+        ToastManagerService,
+        ToastrService,
       ],
-      providers: [ToastManagerService, ToastrService],
     });
 
     toastManager = TestBed.inject(ToastManagerService);
     toastrService = TestBed.inject(ToastrService);
   });
 
-  it('should trigger onShown', done => {
+  it('should trigger onShown', async () => {
     const opened = toastManager.openToastAnimation() as ActiveToast<Toast>;
 
     expect(opened).toBeDefined();
-    firstValueFrom(opened.onShown).then(() => {
-      done();
-    });
+    await whenShown(opened);
   });
 
-  it('should trigger onHidden', done => {
+  it('should trigger onHidden', async () => {
     const opened = toastManager.openToastAnimation() as ActiveToast<Toast>;
 
     expect(opened.portal).toBeDefined();
-    firstValueFrom(opened.onHidden).then(() => {
-      done();
-    });
+    await whenHidden(opened);
   });
 
-  it('should trigger onTap', done => {
-    const opened: ActiveToast<Toast> = toastManager.openToastAnimation() as ActiveToast<Toast>;
+  it('should trigger onTap', async () => {
+    const opened = toastManager.openToastAnimation() as ActiveToast<Toast>;
 
     expect(opened.portal).toBeDefined();
-    firstValueFrom(opened.onTap).then(() => {
-      done();
-    });
+    const tapped = awaitSignal(opened.onTap, count => count > 0);
     opened.portal.instance.tapToast();
+    await tapped;
   });
 
-  it('should extend life on mouseover and exit', done => {
+  it('should extend life on mouseover and exit', () => {
     const opened = toastManager.openToastAnimation() as ActiveToast<Toast>;
 
     opened.portal.instance.stickAround();
     opened.portal.instance.delayedHideToast();
     expect(opened.portal.instance.options().timeOut).toBe(1000);
-    done();
   });
 
-  it('should keep on mouse exit with extended timeout 0', done => {
+  it('should keep on mouse exit with extended timeout 0', () => {
     toastrService.toastrConfig.extendedTimeOut = 0;
     const opened = toastManager.openToastAnimation() as ActiveToast<Toast>;
 
     opened.portal.instance.stickAround();
     opened.portal.instance.delayedHideToast();
     expect(opened.portal.instance.options().timeOut).toBe(0);
-    done();
   });
 
-  it('should trigger onShown for openPinkToast', done => {
+  it('should trigger onShown for openPinkToast', async () => {
     const opened = toastManager.openPinkToast() as ActiveToast<PinkToast>;
 
     expect(opened.portal).toBeDefined();
-    firstValueFrom(opened.onShown).then(() => {
-      done();
-    });
+    await whenShown(opened);
   });
 
-  it('should trigger onAction for openPinkToast', done => {
+  it('should trigger onAction for openPinkToast', async () => {
     const opened = toastManager.openPinkToast() as ActiveToast<PinkToast>;
 
     expect(opened.portal).toBeDefined();
-    firstValueFrom(opened.onAction).then(() => {
-      done();
-    });
+    const actioned = awaitSignal(opened.onAction, count => count > 0);
     opened.portal.instance.action(new Event('click'));
+    await actioned;
   });
 
-  it('should trigger onHidden for openPinkToast', done => {
+  it('should trigger onHidden for openPinkToast', async () => {
     const opened = toastManager.openPinkToast() as ActiveToast<PinkToast>;
 
     expect(opened.portal).toBeDefined();
-    firstValueFrom(opened.onHidden).then(() => {
-      done();
-    });
+    await whenHidden(opened);
   });
 
-  it('should trigger onShown for openNotyf', done => {
+  it('should trigger onShown for openNotyf', async () => {
     const opened = toastManager.openNotyf() as ActiveToast<NotyfToast>;
 
     expect(opened.portal).toBeDefined();
-    firstValueFrom(opened.onShown).then(() => {
-      done();
-    });
+    await whenShown(opened);
   });
 
-  it('should trigger onHidden for openNotyf', done => {
+  it('should trigger onHidden for openNotyf', async () => {
     const opened = toastManager.openNotyf() as ActiveToast<NotyfToast>;
 
     expect(opened.portal).toBeDefined();
-    firstValueFrom(opened.onHidden).then(() => {
-      done();
-    });
+    await whenHidden(opened);
   });
 
   it('should have defined componentInstance', () => {
@@ -131,7 +136,7 @@ describe('Toasts', () => {
   });
 
   it('should have defined componentInstance ToastNoAnim', () => {
-    const opened = toastManager.openToastNoAnimation() as ActiveToast<ToastNoAnimation>;
+    const opened = toastManager.openToastNoAnimation() as ActiveToast<Toast>;
     expect(opened.toastRef.componentInstance).toBeDefined();
   });
 
@@ -145,21 +150,20 @@ describe('Toasts', () => {
     expect(toastrService.currentlyActive).toBe(3);
 
     toastManager.clearToasts();
+    TestBed.tick();
     jasmine.clock().tick(1);
     expect(toastrService.currentlyActive).toBe(0);
 
     jasmine.clock().uninstall();
   });
 
-  it('Should close last toast', done => {
+  it('Should close last toast', async () => {
     toastManager.openToastNoAnimation();
     const lastToast = toastManager.openToastNoAnimation();
     expect(toastrService.currentlyActive).toBe(2);
 
-    firstValueFrom(lastToast!.onHidden).then(() => {
-      done();
-    });
-
+    const hidden = whenHidden(lastToast!);
     toastManager.clearLastToast();
+    await hidden;
   });
 });

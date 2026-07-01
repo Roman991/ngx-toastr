@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { random } from 'lodash-es';
 import {
-  ToastNoAnimation,
+  Toast,
   ToastrService,
   type ActiveToast,
   type GlobalConfig,
@@ -29,7 +29,7 @@ export class ToastManagerService {
     return this.openToast<PinkToast>(
       {
         ..._options,
-        toastComponent: ToastNoAnimation,
+        animation: false,
       },
       quote,
       _options.iconClasses[type ?? 'success'],
@@ -79,7 +79,7 @@ export class ToastManagerService {
     this.toastr.clear(this.lastInserted.pop());
   }
 
-  private openToast<C extends ToastNoAnimation>(
+  private openToast<C extends Toast>(
     options?: IndividualConfig,
     quote?: Quote,
     type?: string,

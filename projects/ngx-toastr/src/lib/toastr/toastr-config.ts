@@ -1,6 +1,4 @@
-import { InjectionToken } from '@angular/core';
-
-import { Observable, Subject } from 'rxjs';
+import { InjectionToken, signal } from '@angular/core';
 
 import { ComponentType } from '../portal/portal';
 import { ToastRef } from './toast-ref';
@@ -85,15 +83,15 @@ export interface IndividualConfig<ConfigPayload = unknown> {
    */
   tapToDismiss: boolean;
   /**
+   * enable enter/leave animations on the toast
+   * default: true
+   */
+  animation: boolean;
+  /**
    * Angular toast component to be shown
    * default: Toast
    */
   toastComponent?: ComponentType<unknown>;
-  /**
-   * Helps show toast from a websocket or from event outside Angular
-   * default: false
-   */
-  onActivateTick: boolean;
   /**
    * New toast placement
    * default: true
@@ -157,8 +155,19 @@ export interface GlobalConfig<C = unknown> extends IndividualConfig<C> {
  * Everything a toast needs to launch
  */
 export class ToastPackage<ConfigPayload = unknown> {
-  private _onTap = new Subject<void>();
-  private _onAction = new Subject<unknown>();
+  /** Counter incremented on every tap. */
+  private _tapped = signal(0);
+  /** Counter incremented on every action. */
+  private _action = signal(0);
+  /** Latest action payload triggered from a custom toast. */
+  private _actionPayload = signal<ConfigPayload | undefined>(undefined);
+
+  /** Incremented on click. */
+  readonly tapped = this._tapped.asReadonly();
+  /** Incremented on each action; observe to react to a custom toast action. */
+  readonly action = this._action.asReadonly();
+  /** Latest action payload; available for use in custom toast. */
+  readonly actionPayload = this._actionPayload.asReadonly();
 
   constructor(
     public toastId: number,
@@ -167,32 +176,17 @@ export class ToastPackage<ConfigPayload = unknown> {
     public title: string | undefined,
     public toastType: string,
     public toastRef: ToastRef<unknown>,
-  ) {
-    this.toastRef.afterClosed().subscribe(() => {
-      this._onAction.complete();
-      this._onTap.complete();
-    });
-  }
+  ) {}
 
   /** Fired on click */
   triggerTap(): void {
-    this._onTap.next();
-    if (this.config.tapToDismiss) {
-      this._onTap.complete();
-    }
-  }
-
-  onTap(): Observable<void> {
-    return this._onTap.asObservable();
+    this._tapped.update(count => count + 1);
   }
 
   /** available for use in custom toast */
-  triggerAction(action?: unknown): void {
-    this._onAction.next(action);
-  }
-
-  onAction(): Observable<unknown> {
-    return this._onAction.asObservable();
+  triggerAction(payload?: ConfigPayload): void {
+    this._actionPayload.set(payload);
+    this._action.update(count => count + 1);
   }
 }
 
@@ -226,7 +220,7 @@ export const DefaultNoComponentGlobalConfig: GlobalConfig = {
   easing: 'ease-in',
   easeTime: 300,
   tapToDismiss: true,
-  onActivateTick: false,
+  animation: true,
   progressAnimation: 'decreasing',
 };
 

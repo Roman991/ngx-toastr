@@ -7,8 +7,8 @@ import { Toast } from 'ngx-toastr';
   template: `
     @let _options = options();
 
-    <div class="row" [style.display]="state() === 'inactive' ? 'none' : ''">
-      <div class="col-9">
+    <div class="pink-row" [style.display]="state() === 'inactive' ? 'none' : ''">
+      <div class="pink-body">
         @if (title()) {
           <div [class]="_options.titleClass" [attr.aria-label]="title()">
             {{ title() }}
@@ -23,13 +23,13 @@ import { Toast } from 'ngx-toastr';
           </div>
         }
       </div>
-      <div class="col-3 text-right">
+      <div class="pink-actions">
         @if (!_options.closeButton) {
-          <button class="btn btn-pink btn-sm" (click)="action($event)">
+          <button class="pink-button" (click)="action($event)">
             {{ undoString }}
           </button>
         } @else {
-          <button (click)="remove()" class="btn btn-pink btn-sm">close</button>
+          <button (click)="remove()" class="pink-button">close</button>
         }
       </div>
     </div>
@@ -63,9 +63,39 @@ import { Toast } from 'ngx-toastr';
         }
       }
 
-      .btn-pink {
+      .pink-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .pink-body {
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+
+      .pink-actions {
+        flex: 0 0 auto;
+        text-align: right;
+      }
+
+      .pink-button {
+        display: inline-block;
+        padding: 5px 10px;
+        font: inherit;
+        font-size: 13px;
+        line-height: 1.2;
+        color: #ffffff;
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.75);
+        border-radius: 6px;
+        cursor: pointer;
         backface-visibility: hidden;
         transform: translateZ(0);
+      }
+
+      .pink-button:hover {
+        background: rgba(255, 255, 255, 0.14);
       }
 
       @keyframes pink-out {

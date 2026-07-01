@@ -28,7 +28,6 @@
     "@angular/platform-browser": "^22.0.4",
     "@angular/router": "^22.0.4",
     "@ctrl/ngx-github-buttons": "^9.0.0",
-    "bootstrap": "^5.3.8",
     "karma-coverage-istanbul-reporter": "^3.0.3",
     "rxjs": "~7.8.2",
     "tslib": "^2.8.1"

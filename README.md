@@ -82,24 +82,7 @@ npm install ngx-toastr --save
 ]
 ```
 
-**step 2:** add `ToastrModule` to app `NgModule`, or `provideToastr` to providers.
-
-- Module based
-
-```typescript
-import { ToastrModule } from 'ngx-toastr';
-
-@NgModule({
-  imports: [
-    ToastrModule.forRoot(), // ToastrModule added
-  ],
-  bootstrap: [App],
-  declarations: [App],
-})
-class MainModule {}
-```
-
-- Standalone
+**step 2:** add `provideToastr` to your application providers.
 
 ```typescript
 import { AppComponent } from './src/app.component';
@@ -154,7 +137,7 @@ Passed to `ToastrService.success/error/warning/info/show()`
 | titleClass        | string                         | 'toast-title'                  | CSS class(es) for inside toast on title           |
 | messageClass      | string                         | 'toast-message'                | CSS class(es) for inside toast on message         |
 | tapToDismiss      | boolean                        | true                           | Close on click                                    |
-| onActivateTick    | boolean                        | false                          | Fires `changeDetectorRef.detectChanges()` when activated. Helps show toast from asynchronous events outside of Angular's change detection |
+| animation         | boolean                        | true                           | Enable enter/leave animations                     |
 
 #### Setting Individual Options
 
@@ -196,22 +179,7 @@ iconClasses = {
 
 #### Setting Global Options
 
-Pass values to `ToastrModule.forRoot()` or `provideToastr()` to set global options.
-
-- Module based
-
-```typescript
-// root app NgModule
-imports: [
-  ToastrModule.forRoot({
-    timeOut: 10000,
-    positionClass: 'toast-bottom-right',
-    preventDuplicates: true,
-  }),
-],
-```
-
-- Standalone
+Pass values to `provideToastr()` to set global options.
 
 ```typescript
 import { AppComponent } from './src/app.component';
@@ -223,7 +191,7 @@ bootstrapApplication(AppComponent, {
       timeOut: 10000,
       positionClass: 'toast-bottom-right',
       preventDuplicates: true,
-    }), 
+    }),
   ]
 });
 ```
@@ -243,43 +211,43 @@ export interface ActiveToast {
   portal: ComponentRef<any>;
   /** a reference to your toast */
   toastRef: ToastRef<any>;
-  /** triggered when toast is active */
-  onShown: Observable<any>;
-  /** triggered when toast is destroyed */
-  onHidden: Observable<any>;
-  /** triggered on toast click */
-  onTap: Observable<any>;
-  /** available for your use in custom toast */
-  onAction: Observable<any>;
+  /** becomes true when the toast is active */
+  onShown: Signal<boolean>;
+  /** becomes true when the toast is destroyed */
+  onHidden: Signal<boolean>;
+  /** increments on each toast click */
+  onTap: Signal<number>;
+  /** increments on each custom toast action */
+  onAction: Signal<number>;
 }
 ```
+
+> **Migrating from Observables:** as of the signals-based release these fields are
+> Angular `Signal`s instead of RxJS `Observable`s. Read them directly or react with
+> `effect()`. For example, replace `activeToast.onTap.subscribe(...)` with an
+> `effect(() => { if (activeToast.onTap()) { /* clicked */ } })`.
 
 ### Put toasts in your own container
 
 Put toasts in a specific div inside your application. This should probably be
-somewhere that doesn't get deleted. Add `ToastContainerDirective` to the ngModule
-where you need the directive available. Make sure that your container has
+somewhere that doesn't get deleted. Import the standalone `ToastContainerDirective`
+into the component where you need it. Make sure that your container has
 an `aria-live="polite"` attribute, so that any time a toast is injected into
 the container it is announced by screen readers.
 
 ```typescript
-import { NgModule } from '@angular/core';
-import { ToastrModule, ToastContainerDirective } from 'ngx-toastr';
+import { provideToastr } from 'ngx-toastr';
 import { AppComponent } from './app.component';
 
-@NgModule({
-  declarations: [AppComponent],
-  imports: [
-    ToastrModule.forRoot({ positionClass: 'inline' }),
-    ToastContainerDirective,
+bootstrapApplication(AppComponent, {
+  providers: [
+    provideToastr({ positionClass: 'inline' }),
   ],
-  providers: [],
-  bootstrap: [AppComponent],
-})
-export class AppModule {}
+});
 ```
 
-Add a div with `toastContainer` directive on it.
+Add a div with `toastContainer` directive on it (import the standalone
+`ToastContainerDirective` in the component's `imports`).
 
 ```typescript
 import { Component, OnInit, viewChild, inject } from '@angular/core';
@@ -287,6 +255,7 @@ import { ToastContainerDirective, ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-root',
+  imports: [ToastContainerDirective],
   template: `
     <h1><a (click)="onClick()">Click</a></h1>
     <div aria-live="polite" toastContainer></div>
@@ -339,23 +308,17 @@ map: {
 
 ## Setup Without Animations
 
-If you do not want animations you can override the default 
-toast component in the global config to use
-`ToastNoAnimation` instead of the default one.
-
-In your main module (ex: `app.module.ts`)
+If you do not want animations set `animation: false` in the config. It can be set
+globally in `provideToastr()` or per-toast in the individual options.
 
 ```typescript
-import { ToastrModule, ToastNoAnimation, ToastNoAnimationModule } from 'ngx-toastr';
+import { provideToastr } from 'ngx-toastr';
 
-@NgModule({
-  imports: [
-    // ...
-    ToastNoAnimationModule.forRoot(),
+bootstrapApplication(AppComponent, {
+  providers: [
+    provideToastr({ animation: false }),
   ],
-  // ...
-})
-class AppModule {}
+});
 ```
 
 That's it! No animations.
@@ -366,18 +329,15 @@ Create your toast component extending Toast see the demo's pink toast for an exa
 https://github.com/scttcper/ngx-toastr/blob/master/src/app/pink.toast.ts
 
 ```typescript
-import { ToastrModule } from 'ngx-toastr';
+import { provideToastr } from 'ngx-toastr';
 
-@NgModule({
-  imports: [
-    ToastrModule.forRoot({
+bootstrapApplication(AppComponent, {
+  providers: [
+    provideToastr({
       toastComponent: YourToastComponent, // added custom toast!
     }),
   ],
-  bootstrap: [App],
-  declarations: [App, YourToastComponent], // add!
-})
-class AppModule {}
+});
 ```
 
 ## FAQ
@@ -398,13 +358,16 @@ ngOnInit() {
     See: https://github.com/scttcper/ngx-toastr/issues/179.
 4.  How can I translate messages?\
     See: https://github.com/scttcper/ngx-toastr/issues/201.
-5.  How to handle toastr click/tap action?
+5.  How to handle toastr click/tap action?\
+    `onTap` is a `Signal<number>` that increments on each click. React to it with an `effect`:
     ```ts
     showToaster() {
-      this.toastr.success('Hello world!', 'Toastr fun!')
-        .onTap
-        .pipe(take(1))
-        .subscribe(() => this.toasterClickedHandler());
+      const toast = this.toastr.success('Hello world!', 'Toastr fun!');
+      effect(() => {
+        if (toast?.onTap()) {
+          this.toasterClickedHandler();
+        }
+      });
     }
 
     toasterClickedHandler() {

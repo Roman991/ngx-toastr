@@ -87,6 +87,23 @@ button.toast-close-button {
   position: fixed;
   z-index: 999999;
 }
+/* When promoted to the browser top layer via the Popover API, neutralize the
+   default UA popover box so the container is an invisible, click-through,
+   full-viewport layer. Toasts inside keep their own fixed positioning. */
+.overlay-container:popover-open {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  overflow: visible;
+  pointer-events: none;
+}
 #toast-container * {
   box-sizing: border-box;
 }

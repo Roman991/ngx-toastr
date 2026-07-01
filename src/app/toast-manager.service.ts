@@ -1,15 +1,15 @@
 import { inject, Injectable } from '@angular/core';
 import { random } from 'lodash-es';
 import {
-  ToastNoAnimation,
+  Toast,
   ToastrService,
   type ActiveToast,
   type GlobalConfig,
   type IndividualConfig,
 } from 'ngx-toastr';
-import { BootstrapToast } from './bootstrap-toast/bootstrap-toast.component';
-import { NotyfToast } from './notyf-toast/notyf-toast.component';
-import { PinkToast } from './pink-toast/pink-toast.component';
+import { BootstrapToast } from './bootstrap-toast';
+import { NotyfToast } from './notyf-toast';
+import { PinkToast } from './pink-toast';
 import { quotes, type Quote } from './quotes';
 
 @Injectable({ providedIn: 'root' })
@@ -29,7 +29,7 @@ export class ToastManagerService {
     return this.openToast<PinkToast>(
       {
         ..._options,
-        toastComponent: ToastNoAnimation,
+        animation: false,
       },
       quote,
       _options.iconClasses[type ?? 'success'],
@@ -79,7 +79,7 @@ export class ToastManagerService {
     this.toastr.clear(this.lastInserted.pop());
   }
 
-  private openToast<C extends ToastNoAnimation>(
+  private openToast<C extends Toast>(
     options?: IndividualConfig,
     quote?: Quote,
     type?: string,

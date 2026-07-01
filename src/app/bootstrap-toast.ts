@@ -4,22 +4,27 @@ import { Toast } from 'ngx-toastr';
 @Component({
   selector: '[bootstrap-toast-component]',
   template: `
-    <div class="toast" role="alert" [style.display]="state() === 'inactive' ? 'none' : ''">
-      <div class="toast-header">
-        <strong class="me-auto">{{ title() || 'default header' }}</strong>
+    <div class="demo-toast" role="alert" [style.display]="state() === 'inactive' ? 'none' : ''">
+      <div class="demo-toast__header">
+        <strong class="demo-toast__title">{{ title() || 'default header' }}</strong>
 
         @if (options().closeButton) {
-          <button type="button" class="btn-close" aria-label="Close" (click)="remove()"></button>
+          <button
+            type="button"
+            class="demo-toast__close"
+            aria-label="Close"
+            (click)="remove()"
+          ></button>
         }
       </div>
 
-      <div class="toast-body">
+      <div class="demo-toast__body">
         <div role="alert" [attr.aria-label]="message()">
           {{ message() || 'default message' }}
         </div>
 
-        <div class="mt-2 pt-2 border-top">
-          <button type="button" class="btn btn-secondary btn-sm" (click)="handleClick($event)">
+        <div class="demo-toast__actions">
+          <button type="button" class="demo-toast__button" (click)="handleClick($event)">
             {{ undoString }}
           </button>
         </div>

@@ -1,5 +1,4 @@
 import { inject, Injectable } from '@angular/core';
-import { random } from 'lodash-es';
 import {
   Toast,
   ToastrService,
@@ -99,7 +98,7 @@ export class ToastManagerService {
 
   private getMessage(quote?: Partial<Quote>): Quote {
     if (!quote?.title && !quote?.message) {
-      return quotes[random(0, quotes.length - 1)];
+      return quotes[Math.floor(Math.random() * quotes.length)];
     }
 
     return quote;

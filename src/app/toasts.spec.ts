@@ -141,7 +141,7 @@ describe('Toasts', () => {
   });
 
   it('should close all toasts', () => {
-    jasmine.clock().install();
+    vi.useFakeTimers();
 
     toastManager.openToastNoAnimation();
     toastManager.openToastNoAnimation();
@@ -151,10 +151,10 @@ describe('Toasts', () => {
 
     toastManager.clearToasts();
     TestBed.tick();
-    jasmine.clock().tick(1);
+    vi.advanceTimersByTime(1);
     expect(toastrService.currentlyActive).toBe(0);
 
-    jasmine.clock().uninstall();
+    vi.useRealTimers();
   });
 
   it('Should close last toast', async () => {
